@@ -128,11 +128,11 @@ registry_client_protocol = http
 # There are three methods of sending notifications, logging (via the
 # log_file directive), rabbit (via a rabbitmq queue), qpid (via a Qpid
 # message queue), or noop (no notifications sent, the default)
-notifier_strategy = rabbit
+notifier_strategy = noop
 
 # Configuration options if sending notifications via rabbitmq (these are
 # the defaults)
-rabbit_host = <%= @rabbit_ipaddress %>
+rabbit_host = localhost
 rabbit_port = 5672
 rabbit_use_ssl = false
 rabbit_userid = guest
