@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
+include_recipe "mysql::client"
 include_recipe "glance::glance-rsyslog"
 include_recipe "monitoring"
 
@@ -88,6 +90,11 @@ glance = get_settings_by_role("glance-api", "glance")
 registry_endpoint = get_access_endpoint("glance-registry", "glance", "registry")
 api_endpoint = get_bind_endpoint("glance", "api")
 
+mysql_info = create_db_and_user("mysql",
+                                node["glance"]["db"]["name"],
+                                node["glance"]["db"]["username"],
+                                node["glance"]["db"]["password"])
+
 template "/etc/glance/glance-api.conf" do
   source "glance-api.conf.erb"
   owner "root"
@@ -106,6 +113,10 @@ template "/etc/glance/glance-api.conf" do
     "service_user" => glance["service_user"],
     "service_pass" => glance["service_pass"],
     "service_tenant_name" => glance["service_tenant_name"],
+    "db_ip_address" => mysql_info["bind_address"],
+    "db_user" => node["glance"]["db"]["username"],
+    "db_password" => node["glance"]["db"]["password"],
+    "db_name" => node["glance"]["db"]["name"],
     "default_store" => glance["api"]["default_store"],
     "swift_large_object_size" => glance["api"]["swift"]["store_large_object_size"],
     "swift_large_object_chunk_size" => glance["api"]["swift"]["store_large_object_chunk_size"],
@@ -142,12 +153,13 @@ template "/etc/glance/glance-scrubber.conf" do
   )
 end
 
-template "/etc/glance/glance-scrubber-paste.ini" do
-  source "glance-scrubber-paste.ini.erb"
-  owner "root"
-  group "root"
-  mode "0644"
-end
+## Removed since I'm not sure if its still needed in Folsom 
+#template "/etc/glance/glance-scrubber-paste.ini" do
+#  source "glance-scrubber-paste.ini.erb"
+#  owner "root"
+#  group "root"
+#  mode "0644"
+#end
 
 # Register Image Service
 keystone_register "Register Image Service" do
