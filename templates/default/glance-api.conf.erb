@@ -11,10 +11,20 @@ verbose = True
 # Show debugging output in logs (sets DEBUG log level output)
 debug = False
 
-# Which backend store should Glance use by default is not specified
-# in a request to add a new image to Glance? Default: 'file'
-# Available choices are 'file', 'swift', and 's3'
-default_store = <%= @default_store %>
+# Which backend scheme should Glance use by default is not specified
+# in a request to add a new image to Glance? Known schemes are determined
+# by the known_stores option below.
+# Default: 'file'
+default_store = file
+
+# List of which store classes and store class locations are
+# currently known to glance at startup.
+# known_stores = glance.store.filesystem.Store,
+#               glance.store.http.Store,
+#               glance.store.rbd.Store,
+#               glance.store.s3.Store,
+#               glance.store.swift.Store,
+
 
 # Address to bind the API server
 bind_host = <%= @api_bind_address %>
@@ -29,6 +39,20 @@ log_file = /var/log/glance/api.log
 # Backlog requests when creating socket
 backlog = 4096
 
+# SQLAlchemy connection string for the reference implementation
+# registry server. Any valid SQLAlchemy connection string is fine.
+# See: http://www.sqlalchemy.org/docs/05/reference/sqlalchemy/connections.html#sqlalchemy.create_engine
+sql_connection = mysql://<%= @db_user %>:<%= @db_password %>@<%= @db_ip_address %>/<%= @db_name %>
+
+# Period in seconds after which SQLAlchemy should reestablish its connection
+# to the database.
+#
+# MySQL uses a default `wait_timeout` of 8 hours, after which it will drop
+# idle connections. This can result in 'MySQL Gone Away' exceptions. If you
+# notice this, you can lower this value to ensure that SQLAlchemy reconnects
+# before MySQL can drop the connection.
+sql_idle_timeout = 3600
+
 # Number of Glance API worker processes to start.
 # On machines with more than one CPU increasing this value
 # may improve performance (especially if using SSL with
@@ -38,6 +62,10 @@ workers = 0
 
 # Role used to identify an authenticated user as administrator
 #admin_role = admin
+
+# Allow unauthenticated users to access the API with read-only
+# privileges. This only applies when using ContextMiddleware.
+#allow_anonymous_access = False
 
 # ================= Syslog Options ============================
 
@@ -100,7 +128,7 @@ registry_client_protocol = http
 # There are three methods of sending notifications, logging (via the
 # log_file directive), rabbit (via a rabbitmq queue), qpid (via a Qpid
 # message queue), or noop (no notifications sent, the default)
-notifier_strategy = noop
+notifier_strategy = rabbit
 
 # Configuration options if sending notifications via rabbitmq (these are
 # the defaults)
@@ -139,6 +167,10 @@ qpid_tcp_nodelay = True
 filesystem_store_datadir = /var/lib/glance/images/
 
 # ============ Swift Store Options =============================
+
+# Version of the authentication service to use
+# Valid versions are '2' for keystone and '1' for swauth and rackspace
+swift_store_auth_version = 2
 
 # Address where the Swift authentication service lives
 # Valid schemes are 'http://' and 'https://'
@@ -180,6 +212,10 @@ swift_store_large_object_chunk_size = <%= @swift_large_object_chunk_size %>
 # `swift_store_auth_address` with 'snet-'.
 # Ex. https://example.com/v1.0/ -> https://snet-example.com/v1.0/
 swift_enable_snet = False
+
+# If set to True enables multi-tenant storage mode which causes Glance images
+# to be stored in tenant specific Swift accounts.
+# swift_store_multi_tenant = False
 
 # ============ S3 Store Options =============================
 
