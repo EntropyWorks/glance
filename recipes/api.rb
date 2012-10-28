@@ -120,7 +120,13 @@ template "/etc/glance/glance-api.conf" do
     "swift_store_auth_version" => swift_store_auth_version,
     "swift_large_object_size" => glance["api"]["swift"]["store_large_object_size"],
     "swift_large_object_chunk_size" => glance["api"]["swift"]["store_large_object_chunk_size"],
-    "swift_store_container" => glance["api"]["swift"]["store_container"]
+    "swift_store_container" => glance["api"]["swift"]["store_container"],
+    "keystone_api_ipaddress" => ks_admin_endpoint["host"],
+    "keystone_service_port" => ks_service_endpoint["port"],
+    "keystone_admin_port" => ks_admin_endpoint["port"],
+    "service_tenant_name" => node["glance"]["service_tenant_name"],
+    "service_user" => node["glance"]["service_user"],
+    "service_pass" => node["glance"]["service_pass"]
     )
   notifies :restart, resources(:service => "glance-api"), :immediately
 end
